@@ -1,69 +1,67 @@
 pub fn part_one(input: String) -> String {
-    let sum_vals: u32 = input
+    input
         .lines()
-        .map(digits_in_line)
+        .map(|l| digits_in_line(l, &NUM_DIGITS))
         .filter_map(connect_ends)
-        .sum();
-    format!("{}", sum_vals)
+        .sum::<u32>()
+        .to_string()
 }
 
 pub fn part_two(input: String) -> String {
-    let sum_vals: u32 = input
+    input
         .lines()
-        .map(spelled_digits)
+        .map(|l| digits_in_line(l, &Vec::from([NUM_DIGITS, WORD_DIGITS]).concat()))
         .filter_map(connect_ends)
-        .sum();
-    format!("{}", sum_vals)
+        .sum::<u32>()
+        .to_string()
+}
+
+fn digits_in_line(line: &str, dict: &[(&str, u32)]) -> Vec<u32> {
+    tails(line).filter_map(|t| start_digit(t, dict)).collect()
+}
+
+fn tails(s: &str) -> impl Iterator<Item = &str> {
+    (0..s.len()).map(|i| &s[i..s.len()])
+}
+
+fn start_digit(line: &str, dict: &[(&str, u32)]) -> Option<u32> {
+    dict.iter()
+        .find_map(|(prefix, val)| {
+            if line.starts_with(prefix) {
+                Some(val)
+            } else {
+                None
+            }
+        })
+        .copied()
 }
 
 fn connect_ends(digits: Vec<u32>) -> Option<u32> {
-    let mut iter = digits.iter();
-    let first = iter.next();
-    let last = iter.last().or(first);
-    Some(first? * 10 + last?)
+    Some(digits.first()? * 10 + digits.last()?)
 }
 
-fn digits_in_line(line: &str) -> Vec<u32> {
-    line.chars().filter_map(|c| c.to_digit(10)).collect()
-}
+const WORD_DIGITS: [(&str, u32); 10] = [
+    ("zero", 0),
+    ("one", 1),
+    ("two", 2),
+    ("three", 3),
+    ("four", 4),
+    ("five", 5),
+    ("six", 6),
+    ("seven", 7),
+    ("eight", 8),
+    ("nine", 9),
+];
 
-fn start_digit(line: &str) -> Option<u32> {
-    if line.starts_with("one") {
-        return Some(1);
-    };
-    if line.starts_with("two") {
-        return Some(2);
-    };
-    if line.starts_with("three") {
-        return Some(3);
-    };
-    if line.starts_with("four") {
-        return Some(4);
-    };
-    if line.starts_with("five") {
-        return Some(5);
-    };
-    if line.starts_with("six") {
-        return Some(6);
-    };
-    if line.starts_with("seven") {
-        return Some(7);
-    };
-    if line.starts_with("eight") {
-        return Some(8);
-    };
-    if line.starts_with("nine") {
-        return Some(9);
-    };
-    line.chars().next().and_then(|c| c.to_digit(10))
-}
-
-fn spelled_digits(line: &str) -> Vec<u32> {
-    let mut digits = Vec::new();
-    for i in 0..line.len() {
-        if let Some(digit) = start_digit(&line[i..line.len()]) {
-            digits.push(digit);
-        }
-    }
-    digits
-}
+const NUM_DIGITS: [(&str, u32); 10] = [
+    ("0", 0),
+    ("1", 1),
+    ("2", 2),
+    ("3", 3),
+    ("4", 4),
+    ("5", 5),
+    ("6", 6),
+    ("7", 7),
+    ("8", 8),
+    ("9", 9),
+];
