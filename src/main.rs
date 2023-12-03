@@ -12,7 +12,7 @@ use solutions::{
 use std::env::current_dir;
 use std::path::PathBuf;
 
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use dotenv::var;
 use tokio::fs::File;
@@ -24,10 +24,10 @@ async fn main() -> Result<()> {
         day,
         first_part,
         second_part,
-        example,
+        input_file,
     } = Cli::parse();
 
-    let input = match example {
+    let input = match input_file {
         Some(path) => {
             let mut file = File::open(path).await?;
             let mut input = String::new();
@@ -35,7 +35,8 @@ async fn main() -> Result<()> {
             input
         }
         None => {
-            let session = var("SESSION")?;
+            let session =
+                var("SESSION").map_err(|_| anyhow!("SESSION environment variable not found"))?;
             let cache_dir = match var("CACHE_DIR") {
                 Ok(dir) => PathBuf::from(dir),
                 Err(_) => current_dir()?.join(".cache"),

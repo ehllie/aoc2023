@@ -4,7 +4,7 @@ use std::path::PathBuf;
 #[derive(Parser)]
 #[command(author, version, about)]
 pub struct Cli {
-    /// Day for which solution is to be run
+    /// Day for which a solution is to be ran
     pub day: u8,
 
     /// Whether to run only the first part of the solution
@@ -15,7 +15,7 @@ pub struct Cli {
     #[arg(short, long = "second", group = "part")]
     pub second_part: bool,
 
-    /// Example input file
-    #[arg(short, long)]
-    pub example: Option<PathBuf>,
+    /// Path to input file
+    #[arg(short, long = "input")]
+    pub input_file: Option<PathBuf>,
 }
