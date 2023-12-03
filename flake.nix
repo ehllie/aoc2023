@@ -25,12 +25,14 @@
       ./crates.nix
     ];
 
-    perSystem = { config, ... }:
+    perSystem = { config, pkgs, ... }:
       let crateOutputs = config.nci.outputs.aoc2023; in
       {
         overlayAttrs.aoc2023 = config.packages.default;
         packages.default = crateOutputs.packages.release;
-        devShells.default = crateOutputs.devShell.overrideAttrs (_: {
+        devShells.default = crateOutputs.devShell.overrideAttrs (old: {
+          packages = old.packages or [ ] ++ [ pkgs.hyperfine ];
+
           shellHook = ''
             PATH=$PATH:$PWD/target/debug
           '';
