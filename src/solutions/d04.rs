@@ -56,7 +56,7 @@ fn nums_in_str(s: &str) -> HashSet<String> {
 
 fn parse_card(line: &str) -> (HashSet<String>, HashSet<String>) {
     let mut parts = line.split(" | ");
-    let guesses = nums_in_str(parts.next().unwrap().split(':').skip(1).next().unwrap());
+    let guesses = nums_in_str(parts.next().unwrap().split(':').nth(1).unwrap());
     let answers = nums_in_str(parts.next().unwrap());
     (guesses, answers)
 }

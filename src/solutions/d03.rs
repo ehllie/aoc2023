@@ -10,13 +10,11 @@ type Point = (usize, usize);
 type Schematic = HashMap<Point, SchematicItem>;
 
 pub fn part_one(input: &str) -> String {
-    let schematic = parse_schematic(&input);
+    let schematic = parse_schematic(input);
     let part_nums = schematic.iter().filter_map(|(p, i)| match i {
         SchematicItem::Number(n) => {
-            let borders_symbol = adjacent_items(p, i).any(|p| match schematic.get(&p) {
-                Some(SchematicItem::Symbol(_)) => true,
-                _ => false,
-            });
+            let borders_symbol = adjacent_items(p, i)
+                .any(|p| matches!(schematic.get(&p), Some(SchematicItem::Symbol(_))));
             if borders_symbol {
                 n.parse::<u32>().ok()
             } else {
@@ -29,7 +27,7 @@ pub fn part_one(input: &str) -> String {
 }
 
 pub fn part_two(input: &str) -> String {
-    let schematic = parse_schematic(&input);
+    let schematic = parse_schematic(input);
     let gears = schematic.iter().filter_map(|(sp, si)| match si {
         SchematicItem::Symbol('*') => {
             let adjacent_parts = schematic
@@ -84,7 +82,7 @@ fn parse_schematic(input: &str) -> Schematic {
     let mut y = 0;
     let mut number = String::new();
     for c in input.chars() {
-        if (c < '0' || c > '9') && !number.is_empty() {
+        if !c.is_ascii_digit() && !number.is_empty() {
             schematic.insert((x - number.len(), y), SchematicItem::Number(number.clone()));
             number.clear();
         }

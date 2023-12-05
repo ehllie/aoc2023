@@ -51,7 +51,7 @@ fn parse_game(line: &str) -> Game {
     let mut parts = line.split(": ");
     let header = parts.next().unwrap();
     let handfuls = parts.next().unwrap();
-    let id = header.split(" ").last().unwrap().parse().unwrap();
+    let id = header.split(' ').last().unwrap().parse().unwrap();
     let handfuls = handfuls
         .split("; ")
         .map(|h| {
@@ -59,7 +59,7 @@ fn parse_game(line: &str) -> Game {
             let mut red = 0;
             let mut green = 0;
             for c in h.split(", ") {
-                let mut parts = c.split(" ");
+                let mut parts = c.split(' ');
                 let count = parts.next().unwrap().parse().unwrap();
                 match parts.next().unwrap() {
                     "red" => red = count,

@@ -19,13 +19,12 @@ use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use dotenv::var;
 
-fn simple_benchmark<F>(func: F, passes: u32) -> Duration
-where
-    F: Fn(),
-{
+type SolutionBox = Box<dyn Fn(&str) -> String>;
+
+fn simple_benchmark<F: Fn()>(func: F, passes: u32) -> Duration {
     let start = Instant::now();
     for _ in 0..passes {
-        black_box(func());
+        func();
     }
     start.elapsed()
 }
@@ -55,8 +54,7 @@ pub fn main() -> Result<()> {
         }
     };
 
-    let (part_one, part_two): (Box<dyn Fn(&str) -> String>, Box<dyn Fn(&str) -> String>) = match day
-    {
+    let (part_one, part_two): (SolutionBox, SolutionBox) = match day {
         1 => (Box::new(d01::part_one), Box::new(d01::part_two)),
         2 => (Box::new(d02::part_one), Box::new(d02::part_two)),
         3 => (Box::new(d03::part_one), Box::new(d03::part_two)),
@@ -102,15 +100,13 @@ pub fn main() -> Result<()> {
         println!("Ran {passes} passes in {}ms", elapsed.as_millis());
         let per_pass = elapsed / passes;
         println!("{}µs/pass", per_pass.as_micros());
+    } else if first_part {
+        println!("{}", part_one(&input));
+    } else if second_part {
+        println!("{}", part_two(&input));
     } else {
-        if first_part {
-            println!("{}", part_one(&input));
-        } else if second_part {
-            println!("{}", part_two(&input));
-        } else {
-            println!("{}", part_one(&input));
-            println!("{}", part_two(&input));
-        }
+        println!("{}", part_one(&input));
+        println!("{}", part_two(&input));
     }
     Ok(())
 }
