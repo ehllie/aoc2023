@@ -1,10 +1,9 @@
+use std::fs;
 use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::{anyhow, Result};
 use reqwest::{cookie::Jar, Client, ClientBuilder, Url};
-use tokio::fs::{create_dir_all, File};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 pub struct AocInputs {
     cache_dir: PathBuf,
@@ -29,26 +28,22 @@ impl AocInputs {
         self.cache_dir.join(format!("day_{}.txt", day))
     }
 
-    async fn write_cache(&self, day: u8, content: String) -> Result<()> {
-        create_dir_all(&self.cache_dir).await?;
-        let mut file = File::create(self.cache_file(day)).await?;
-        file.write_all(content.as_bytes()).await?;
-        Ok(())
+    fn write_cache(&self, day: u8, content: String) -> Result<()> {
+        fs::create_dir_all(&self.cache_dir)?;
+        Ok(fs::write(self.cache_file(day), content)?)
     }
 
-    async fn read_cache(&self, day: u8) -> Result<String> {
-        let mut file = File::open(self.cache_file(day)).await?;
-        let mut content = String::new();
-        file.read_to_string(&mut content).await?;
-        Ok(content)
+    fn read_cache(&self, day: u8) -> Result<String> {
+        Ok(fs::read_to_string(self.cache_file(day))?)
     }
 
+    #[tokio::main]
     async fn fetch_input(&self, day: u8) -> Result<String> {
         let url = format!("https://adventofcode.com/2023/day/{}/input", day);
         let response = self.client.get(url).send().await?;
         if response.status().is_success() {
             let input = response.text().await?;
-            self.write_cache(day, input.clone()).await?;
+            self.write_cache(day, input.clone())?;
             Ok(input)
         } else {
             println!("{}", response.text().await?);
@@ -56,12 +51,12 @@ impl AocInputs {
         }
     }
 
-    pub async fn get_input(&self, day: u8) -> Result<String> {
-        match self.read_cache(day).await {
+    pub fn get_input(&self, day: u8) -> Result<String> {
+        match self.read_cache(day) {
             Err(_) => {
                 println!("Cache file not found, fetching input from advent of code");
-                let input = self.fetch_input(day).await?;
-                if self.write_cache(day, input.clone()).await.is_err() {
+                let input = self.fetch_input(day)?;
+                if self.write_cache(day, input.clone()).is_err() {
                     println!("Failed to create cache file for day {day}");
                 }
                 Ok(input)

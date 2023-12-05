@@ -10,6 +10,7 @@ use solutions::{
 };
 
 use std::env::current_dir;
+use std::fs;
 use std::hint::black_box;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
@@ -17,8 +18,6 @@ use std::time::{Duration, Instant};
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use dotenv::var;
-use tokio::fs::File;
-use tokio::io::AsyncReadExt;
 
 fn simple_benchmark<F>(func: F, passes: u32) -> Duration
 where
@@ -31,8 +30,7 @@ where
     start.elapsed()
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
+pub fn main() -> Result<()> {
     let Cli {
         day,
         first_part,
@@ -43,12 +41,7 @@ async fn main() -> Result<()> {
     } = Cli::parse();
 
     let input = match input_file {
-        Some(path) => {
-            let mut file = File::open(path).await?;
-            let mut input = String::new();
-            file.read_to_string(&mut input).await?;
-            input
-        }
+        Some(path) => fs::read_to_string(path)?,
         None => {
             let session =
                 var("SESSION").map_err(|_| anyhow!("SESSION environment variable not found"))?;
@@ -58,7 +51,7 @@ async fn main() -> Result<()> {
             };
 
             let inputs = AocInputs::new(cache_dir, session)?;
-            inputs.get_input(day).await?
+            inputs.get_input(day)?
         }
     };
 
