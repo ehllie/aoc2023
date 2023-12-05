@@ -6,7 +6,7 @@ struct Handful {
 
 type Game = (u32, Vec<Handful>);
 
-pub fn part_one(input: String) -> String {
+pub fn part_one(input: &str) -> String {
     input
         .lines()
         .map(parse_game)
@@ -24,7 +24,7 @@ pub fn part_one(input: String) -> String {
         .to_string()
 }
 
-pub fn part_two(input: String) -> String {
+pub fn part_two(input: &str) -> String {
     input
         .lines()
         .map(parse_game)

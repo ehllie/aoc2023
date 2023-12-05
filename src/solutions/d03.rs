@@ -9,7 +9,7 @@ type Point = (usize, usize);
 
 type Schematic = HashMap<Point, SchematicItem>;
 
-pub fn part_one(input: String) -> String {
+pub fn part_one(input: &str) -> String {
     let schematic = parse_schematic(&input);
     let part_nums = schematic.iter().filter_map(|(p, i)| match i {
         SchematicItem::Number(n) => {
@@ -28,7 +28,7 @@ pub fn part_one(input: String) -> String {
     part_nums.sum::<u32>().to_string()
 }
 
-pub fn part_two(input: String) -> String {
+pub fn part_two(input: &str) -> String {
     let schematic = parse_schematic(&input);
     let gears = schematic.iter().filter_map(|(sp, si)| match si {
         SchematicItem::Symbol('*') => {

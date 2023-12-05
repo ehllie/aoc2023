@@ -10,13 +10,26 @@ use solutions::{
 };
 
 use std::env::current_dir;
+use std::hint::black_box;
 use std::path::PathBuf;
+use std::time::{Duration, Instant};
 
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use dotenv::var;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
+
+fn simple_benchmark<F>(func: F, passes: u32) -> Duration
+where
+    F: Fn(),
+{
+    let start = Instant::now();
+    for _ in 0..passes {
+        black_box(func());
+    }
+    start.elapsed()
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -25,6 +38,8 @@ async fn main() -> Result<()> {
         first_part,
         second_part,
         input_file,
+        bench,
+        passes,
     } = Cli::parse();
 
     let input = match input_file {
@@ -47,10 +62,8 @@ async fn main() -> Result<()> {
         }
     };
 
-    let (part_one, part_two): (
-        Box<dyn FnOnce(String) -> String>,
-        Box<dyn FnOnce(String) -> String>,
-    ) = match day {
+    let (part_one, part_two): (Box<dyn Fn(&str) -> String>, Box<dyn Fn(&str) -> String>) = match day
+    {
         1 => (Box::new(d01::part_one), Box::new(d01::part_two)),
         2 => (Box::new(d02::part_one), Box::new(d02::part_two)),
         3 => (Box::new(d03::part_one), Box::new(d03::part_two)),
@@ -79,13 +92,32 @@ async fn main() -> Result<()> {
         _ => bail!("Invalid day"),
     };
 
-    if first_part {
-        println!("{}", part_one(input));
-    } else if second_part {
-        println!("{}", part_two(input));
+    if bench {
+        let elapsed = if first_part {
+            simple_benchmark(|| _ = black_box(part_one(&input)), passes)
+        } else if second_part {
+            simple_benchmark(|| _ = black_box(part_two(&input)), passes)
+        } else {
+            simple_benchmark(
+                || {
+                    _ = black_box(part_one(&input));
+                    _ = black_box(part_two(&input))
+                },
+                passes,
+            )
+        };
+        println!("Ran {passes} passes in {}ms", elapsed.as_millis());
+        let per_pass = elapsed / passes;
+        println!("{}µs/pass", per_pass.as_micros());
     } else {
-        println!("{}", part_one(input.clone()));
-        println!("{}", part_two(input));
+        if first_part {
+            println!("{}", part_one(&input));
+        } else if second_part {
+            println!("{}", part_two(&input));
+        } else {
+            println!("{}", part_one(&input));
+            println!("{}", part_two(&input));
+        }
     }
     Ok(())
 }

@@ -1,6 +1,6 @@
 use std::collections::{HashSet, VecDeque};
 
-pub fn part_one(input: String) -> String {
+pub fn part_one(input: &str) -> String {
     input
         .lines()
         .fold(0, |acc, l| {
@@ -15,7 +15,7 @@ pub fn part_one(input: String) -> String {
         .to_string()
 }
 
-pub fn part_two(input: String) -> String {
+pub fn part_two(input: &str) -> String {
     let mut copies = VecDeque::new();
     input
         .lines()

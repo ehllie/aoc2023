@@ -1,4 +1,4 @@
-pub fn part_one(input: String) -> String {
+pub fn part_one(input: &str) -> String {
     input
         .lines()
         .map(|l| digits_in_line(l, &NUM_DIGITS))
@@ -7,7 +7,7 @@ pub fn part_one(input: String) -> String {
         .to_string()
 }
 
-pub fn part_two(input: String) -> String {
+pub fn part_two(input: &str) -> String {
     input
         .lines()
         .map(|l| digits_in_line(l, &Vec::from([NUM_DIGITS, WORD_DIGITS]).concat()))

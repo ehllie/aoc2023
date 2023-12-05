@@ -1,7 +1,7 @@
 type RangeMap = (isize, isize, isize);
 type ItemMap = Vec<RangeMap>;
 
-pub fn part_one(input: String) -> String {
+pub fn part_one(input: &str) -> String {
     let (seeds, maps) = parse_maps(&input);
     seeds
         .iter()
@@ -11,7 +11,7 @@ pub fn part_one(input: String) -> String {
         .to_string()
 }
 
-pub fn part_two(input: String) -> String {
+pub fn part_two(input: &str) -> String {
     let (seeds, maps) = parse_maps(&input);
     let seed_ranges = seeds.windows(2).step_by(2).map(|w| (w[0], w[1]));
     let ranges = seed_ranges.collect();
