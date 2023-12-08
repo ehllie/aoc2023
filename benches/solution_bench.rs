@@ -13,7 +13,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         .unwrap_or_else(|_| current_dir().expect("can't get current dir").join(".cache"));
 
     let inputs = AocInputs::new(cache_dir, session).unwrap();
-    let inputs = (1..=7).filter_map(|day| inputs.get_input(day).ok().map(|i| (i, day)));
+    let inputs = (1..=8).filter_map(|day| inputs.get_input(day).ok().map(|i| (i, day)));
 
     for (input, day) in inputs {
         let (part_one, part_two) = day_solutions(day).unwrap();
