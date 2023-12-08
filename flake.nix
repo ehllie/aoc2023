@@ -31,7 +31,7 @@
         overlayAttrs.aoc2023 = config.packages.default;
         packages.default = crateOutputs.packages.release;
         devShells.default = crateOutputs.devShell.overrideAttrs (old: {
-          packages = old.packages or [ ] ++ [ pkgs.hyperfine ];
+          packages = old.packages or [ ] ++ [ pkgs.hyperfine pkgs.gnuplot ];
 
           shellHook = ''
             PATH=$PATH:$PWD/target/debug

@@ -18,12 +18,4 @@ pub struct Cli {
     /// Path to input file
     #[arg(short, long = "input")]
     pub input_file: Option<PathBuf>,
-
-    /// Benchmark the solution
-    #[arg(short, long = "bench")]
-    pub bench: bool,
-
-    /// Benchmarking passes to run
-    #[arg(short, long = "passes", default_value = "100")]
-    pub passes: u32,
 }
