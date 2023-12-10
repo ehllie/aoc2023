@@ -5,46 +5,33 @@ type ConnectionGraph = HashMap<(isize, isize), Box<[(isize, isize)]>>;
 type IndexMap = HashMap<(isize, isize), usize>;
 
 pub fn part_one(input: &str) -> String {
-    let graph = pipe_graph(input);
-    let mut pv = graph.keys().collect::<PartitionVec<(isize, isize)>>();
-    let index_map = pv.clone();
-    let index_map = index_map
-        .into_iter()
-        .enumerate()
-        .map(|(i, n)| (n, i))
-        .collect::<HashMap<_, _>>();
+    let (graph, start) = pipe_graph(input);
+    let (index_map, disjoint_set) = find_loop(&graph);
 
-    let start_pos = find_loop(&graph, &mut pv, &index_map);
-    let set_size = pv.len_of_set(start_pos);
+    let start = index_map[&start];
+    let perimiter = disjoint_set.len_of_set(start);
 
-    (set_size / 2).to_string()
+    (perimiter / 2).to_string()
 }
 
 pub fn part_two(input: &str) -> String {
-    let graph = pipe_graph(input);
-    let mut pv = graph.keys().collect::<PartitionVec<(isize, isize)>>();
-    let index_map = pv.clone();
-    let index_map = index_map
-        .into_iter()
-        .enumerate()
-        .map(|(i, n)| (n, i))
-        .collect::<HashMap<_, _>>();
+    let (graph, start) = pipe_graph(input);
+    let (index_map, disjoint_set) = find_loop(&graph);
 
-    let start_pos = find_loop(&graph, &mut pv, &index_map);
-    let set_size = pv.len_of_set(start_pos);
+    let start = index_map[&start];
+    let perimiter = disjoint_set.len_of_set(start);
 
-    let mut vertices = vec![start_pos];
-
-    while vertices.len() != set_size {
+    let mut vertices = vec![start];
+    while vertices.len() != perimiter {
         let end_pos = vertices.len() - 1;
         let before_end_pos = if end_pos == 0 { 0 } else { end_pos - 1 };
         let last = vertices[end_pos];
         let before_last = vertices[before_end_pos];
-        let next = graph[&pv[last]]
+        let next = graph[&disjoint_set[last]]
             .iter()
             .find_map(|neighbour| {
                 let &next = index_map.get(neighbour)?;
-                if next != before_last && pv.same_set(next, last) {
+                if next != before_last && disjoint_set.same_set(next, last) {
                     Some(next)
                 } else {
                     None
@@ -53,32 +40,38 @@ pub fn part_two(input: &str) -> String {
             .unwrap();
         vertices.push(next);
     }
-    vertices.push(start_pos);
+    vertices.push(start);
 
     let area = vertices
         .windows(2)
         .map(|w| {
-            let (x1, y1) = pv[w[0]];
-            let (x2, y2) = pv[w[1]];
+            let (x1, y1) = disjoint_set[w[0]];
+            let (x2, y2) = disjoint_set[w[1]];
             x1 * y2 - x2 * y1
         })
         .sum::<isize>()
         .abs()
-        - set_size as isize;
+        - perimiter as isize;
     // This is sometimes off by 1, but not always.
     // For my input it gave the correct answer,
     // and is much faster than trying to do the flood fill.
     // And so I CBA to fix it.
+    // According to https://en.wikipedia.org/wiki/Pick's_theorem
+    // it should be correct.
     let area = area / 2 + 1;
 
     area.to_string()
 }
 
-fn find_loop(
-    graph: &ConnectionGraph,
-    disjoint_set: &mut PartitionVec<(isize, isize)>,
-    index_map: &IndexMap,
-) -> usize {
+fn find_loop(graph: &ConnectionGraph) -> (IndexMap, PartitionVec<(isize, isize)>) {
+    let mut disjoint_set = graph.keys().collect::<PartitionVec<_>>();
+    let index_map = disjoint_set.clone();
+    let index_map = index_map
+        .into_iter()
+        .enumerate()
+        .map(|(i, n)| (n, i))
+        .collect::<HashMap<_, _>>();
+
     for (node, connections) in graph.iter() {
         for other_node in connections.iter() {
             match graph.get(other_node) {
@@ -91,17 +84,7 @@ fn find_loop(
             }
         }
     }
-    let start_node = graph
-        .iter()
-        .find_map(|(pos, connections)| {
-            if connections.len() == 4 {
-                Some(pos)
-            } else {
-                None
-            }
-        })
-        .unwrap();
-    index_map[start_node]
+    (index_map, disjoint_set)
 }
 
 fn pipe_connections(shape: char, pos: (isize, isize)) -> Box<[(isize, isize)]> {
@@ -122,21 +105,19 @@ fn pipe_connections(shape: char, pos: (isize, isize)) -> Box<[(isize, isize)]> {
     })
 }
 
-fn pipe_graph(input: &str) -> ConnectionGraph {
-    input
-        .lines()
-        .enumerate()
-        .flat_map(|(row, line)| {
-            line.chars().enumerate().filter_map(move |(col, c)| {
-                if c != '.' {
-                    Some((
-                        (col as isize, row as isize),
-                        pipe_connections(c, (col as isize, row as isize)),
-                    ))
-                } else {
-                    None
+fn pipe_graph(input: &str) -> (ConnectionGraph, (isize, isize)) {
+    let mut start = None;
+    let mut graph = ConnectionGraph::new();
+    for (row, line) in input.lines().enumerate() {
+        for (col, c) in line.chars().enumerate() {
+            if c != '.' {
+                let point = (col as isize, row as isize);
+                if c == 'S' {
+                    start = Some(point);
                 }
-            })
-        })
-        .collect()
+                graph.insert(point, pipe_connections(c, point));
+            }
+        }
+    }
+    (graph, start.unwrap())
 }
