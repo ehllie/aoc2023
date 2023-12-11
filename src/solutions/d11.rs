@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 type Galaxies = Vec<((isize, isize), (isize, isize))>;
 
@@ -27,7 +27,7 @@ fn galaxy_distances(galaxies: &Galaxies, expansion_rate: isize) -> isize {
 }
 
 fn parse_universe(input: &str) -> Galaxies {
-    let mut columns = HashMap::<isize, HashSet<(isize, isize, isize)>>::new();
+    let mut columns = HashMap::<isize, Vec<(isize, isize, isize)>>::new();
     let mut expanded_rows = 0;
     let mut row_length = 0;
     for (row, line) in input.lines().enumerate() {
@@ -35,12 +35,9 @@ fn parse_universe(input: &str) -> Galaxies {
         for (col, c) in line.chars().enumerate() {
             if c == '#' {
                 if let Some(column) = columns.get_mut(&(col as isize)) {
-                    column.insert((row as isize, 0, expanded_rows));
+                    column.push((row as isize, 0, expanded_rows));
                 } else {
-                    columns.insert(
-                        col as isize,
-                        HashSet::from([(row as isize, 0, expanded_rows)]),
-                    );
+                    columns.insert(col as isize, Vec::from([(row as isize, 0, expanded_rows)]));
                 }
                 empty_row = false;
             }
@@ -53,16 +50,11 @@ fn parse_universe(input: &str) -> Galaxies {
 
     let mut expanded_columns = 0;
     for col in 0..row_length {
-        if let Some(column) = columns.remove(&col) {
-            columns.insert(
-                col,
-                column
-                    .into_iter()
-                    .map(|(row, _, e_row)| (row, expanded_columns, e_row))
-                    .collect(),
-            );
+        if let Some(column) = columns.get_mut(&col) {
+            for row in column.iter_mut() {
+                *row = (row.0, expanded_columns, row.2);
+            }
         } else {
-            // println!("Column {} is empty", col);
             expanded_columns += 1;
         }
     }
